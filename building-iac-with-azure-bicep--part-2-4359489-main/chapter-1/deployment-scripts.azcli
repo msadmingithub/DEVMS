@@ -1,0 +1,28 @@
+# Login to Azure
+az login --use-device-code
+az account show --query name
+
+az login --scope https://management.core.windows.net//.default
+
+# Set primary subscription if you have multiple
+az account set --subscription "Your subscription name"  
+
+# List all RG names
+az group list -o table
+
+# Deploy parent-child-storage.bicep
+az group create -n 'bicep-rg' -l 'eastus2'
+az deployment group create -g 'bicep-rg' -f .\storage.bicep -c
+
+# Deploy into subscription
+az deployment sub create -l eastus2 -f .\chapter-1\subscription-scope.bicep -c
+
+#Switching to bash to add variables
+managementGroupId="SecretRND"
+templateFile="managment-scope.bicep"
+today=$(date +"%d-%b-%Y")
+deploymentName="mg-scope-"$today
+
+#Create and deploy policy into management group in your tenant
+az account management-group create --name $managementGroupId --display-name "Secret R&D Project"
+az deployment mg create --management-group-id $managementGroupId --name $deploymentName --location eastus2 --template-file ./chapter-1/$templateFile
